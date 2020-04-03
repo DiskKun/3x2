@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border: 1px solid #000000;
+}
+</style>
+</head>
+<body onload="startGame()">
+  <p id="status"></p>
+  <p id="score"></p>
+<script>
+
+  function startGame() {
+      gameArea.start();
+      player = new component(1, 1, "orange", 0, 1);
+      sword = new component(1, 1, "blue", 4, 2);
+      enemy = new component(1, 1, "red", 4, 2);
+      block = new component(1,1, "green", 4, 2);
+      score = 0;
+      lost = false;
+  }
+
+  var gameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+      this.canvas.width = 3;
+      this.canvas.height = 2;
+      this.context = this.canvas.getContext("2d");
+      document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+      this.interval = setInterval(update, 200);
+      window.addEventListener('keydown', function (e) {
+        gameArea.keys = (gameArea.keys || []);
+        gameArea.keys[e.keyCode] = true;
+      })
+      window.addEventListener('keyup', function (e) {
+        gameArea.keys[e.keyCode] = false;
+      })
+    },
+    clear : function() {
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+  }
+
+  function component(width, height, color, x, y) {
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;
+    this.update = function(){
+      ctx = gameArea.context;
+      ctx.fillStyle = color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+  }
+
+  function playerMove() {
+    if (gameArea.keys[38]) {
+      player.y = 0;
+    } else {
+      player.y = 1;
+    }
+    if (gameArea.keys[39]) {
+      sword.y = player.y;
+      sword.x = player.x + 1;
+    } else {
+      sword.y = 2;
+    }
+  }
+
+  function elementSpawn() {
+      s = Math.floor(Math.random() * 2);
+      if (s === 1 && block.x > 3) {
+        enemy.y = Math.floor(Math.random() * 2);
+        enemy.x = 3;
+      } else if (s === 0 && enemy.x > 3) {
+        block.y = Math.floor(Math.random() * 2);
+        block.x = 3;
+      }
+  }
+
+  function enemyMove() {
+    if (enemy.x > -1) {
+      enemy.x -= 1;
+    }
+  }
+
+  function blockMove() {
+    if (block.x > -1) {
+      block.x -= 1;
+    }
+  }
+
+  function enemyEvent() {
+    if (enemy.x === -1) {
+      enemy.x = 4
+      document.getElementById("status").innerHTML = "Lost";
+
+    } else if (enemy.x === sword.x && enemy.y === sword.y) {
+      enemy.x = 3
+      score += 1
+      document.getElementById("score").innerHTML = "Score: " + score;
+    }
+  }
+
+
+  function blockEvent() {
+    if (block.x === sword.x && block.y === sword.y) {
+      block.x = 4
+      document.getElementById("status").innerHTML = "Lost";
+    } else if (block.x === -1) {
+      block.x = 4
+    }
+  }
+
+  function restart() {
+    if (gameArea.keys[13]) {
+      player.y = 0;
+    }
+  }
+
+  function update() {
+    gameArea.clear();
+    playerMove();
+    elementSpawn();
+    enemyMove();
+    blockMove();
+    enemyEvent();
+    blockEvent();
+    player.update();
+    enemy.update();
+    sword.update();
+    block.update();
+  }
+
+</script>
+</body>
+</html>
